@@ -11,6 +11,27 @@
             margin: 0; padding: 40px;
         }
 
+        /* ARAMA KUTUSU TASARIMI */
+        .search-container {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        #searchInput {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px 20px;
+            border-radius: 25px;
+            border: 2px solid #ddd;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #searchInput:focus {
+            border-color: #007bff;
+        }
+
         .container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -96,6 +117,10 @@
 </head>
 <body>
 
+<div class="search-container">
+    <input type="text" id="searchInput" placeholder="İçeriklerde ara..." onkeyup="filterGallery()">
+</div>
+
 <div class="container" id="gallery">
     </div>
 
@@ -111,51 +136,67 @@
 </div>
 
 <script>
-    // --- YENİ BİLGİ EKLEME ALANI ---
-    // Buraya istediğin kadar yeni madde ekleyebilirsin.
-    // 'video' kısmını boş bırakırsan otomatik olarak resim görünür.
     const contents = [
         {
             title: "Energic Atoms Didn't Astonish Us Today!",
             desc: "Do you know a hydrogen atom emits ultraviolet light when the electron of the hydrogen transitions from 2nd energy level to 1st energy level?",
             image: "images.png",
-            video: "HAu.mp4" // Video var -> Video görünecek
+            video: "HAu.mp4" 
         },
         {
             title: "Tarihi Mimari",
             desc: "1930'ların mimari yapısı ve estetik detayları üzerine bir inceleme.",
             image: "https://picsum.photos/id/1018/600/400",
-            video: "" // Video yok -> Resim görünecek
+            video: "" 
         },
         {
             title: "Kimyasal Reaksiyonlar",
             desc: "Hidrojen atomlarının bağ kurma süreçleri oldukça karmaşıktır.",
             image: "https://picsum.photos/id/1067/600/400",
-            video: "" // Video yok -> Resim görünecek
+            video: "" 
         }
     ];
 
     const gallery = document.getElementById('gallery');
 
-    // Kartları oluşturma
-    contents.forEach((item, index) => {
-        const card = document.createElement('div');
-        card.className = 'info-card';
-        card.onclick = () => openModal(index);
+    // Galeriye kartları basan fonksiyon (Arama için ayrı fonksiyona aldım)
+    function displayCards(data) {
+        gallery.innerHTML = ''; // Önce temizle
+        data.forEach((item) => {
+            // Orijinal dizideki index'i bulmak için (Modal için doğru veriyi çekmek adına)
+            const originalIndex = contents.indexOf(item);
+            
+            const card = document.createElement('div');
+            card.className = 'info-card';
+            card.onclick = () => openModal(originalIndex);
 
-        let mediaHTML = '';
-        if (item.video) {
-            mediaHTML = `<video autoplay muted loop><source src="${item.video}" type="video/mp4"></video>`;
-        } else {
-            mediaHTML = `<img src="${item.image}" alt="${item.title}">`;
-        }
+            let mediaHTML = '';
+            if (item.video) {
+                mediaHTML = `<video autoplay muted loop><source src="${item.video}" type="video/mp4"></video>`;
+            } else {
+                mediaHTML = `<img src="${item.image}" alt="${item.title}">`;
+            }
 
-        card.innerHTML = `
-            <div class="media-container">${mediaHTML}</div>
-            <div class="card-info">${item.title}</div>
-        `;
-        gallery.appendChild(card);
-    });
+            card.innerHTML = `
+                <div class="media-container">${mediaHTML}</div>
+                <div class="card-info">${item.title}</div>
+            `;
+            gallery.appendChild(card);
+        });
+    }
+
+    // Arama fonksiyonu
+    function filterGallery() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const filteredData = contents.filter(item => 
+            item.title.toLowerCase().includes(searchTerm) || 
+            item.desc.toLowerCase().includes(searchTerm)
+        );
+        displayCards(filteredData);
+    }
+
+    // İlk açılışta tüm kartları göster
+    displayCards(contents);
 
     function openModal(index) {
         const item = contents[index];
@@ -174,8 +215,15 @@
     }
 
     function closeModal() {
-        document.getElementById('modal-media-box').innerHTML = ''; // Videoyu durdur
+        document.getElementById('modal-media-box').innerHTML = '';
         document.getElementById('infoModal').style.display = "none";
+    }
+
+    // Modal dışına tıklayınca kapansın
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('infoModal')) {
+            closeModal();
+        }
     }
 </script>
 
